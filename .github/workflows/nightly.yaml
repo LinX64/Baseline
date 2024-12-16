@@ -41,7 +41,7 @@ jobs:
         run: yes | sdkmanager --licenses || true
 
       - name: Setup GMD
-        run: ./gradlew :macrobenchmark:pixel6Api33Setup
+        run: ./gradlew :macrobenchmark:pixel6Api34Setup
           --info
           -Pandroid.experimental.testOptions.managedDevices.emulator.showKernelLogging=true
           -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect"
