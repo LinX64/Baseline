@@ -57,21 +57,31 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
 
+      - name: List Generated Files
+        run: |
+          echo "Checking for generated profile files..."
+          ls -la /home/runner/work/Baseline/Baseline/app/src/release/generated/baselineProfiles/ || echo "Directory not found"
+
       - name: Commit and Push Changes
         run: |
-          # Check for generated profiles
-          if [ -d "app/src/main/baseline-prof.txt" ] || [ -d "app/build/baselineProfiles" ]; then
+          # Ignore Kotlin session files
+          git update-index --assume-unchanged .kotlin/sessions/* || true
+          
+          WORKSPACE="/home/runner/work/Baseline/Baseline"
+          PROFILE_DIR="$WORKSPACE/app/src/release/generated/baselineProfiles"
+          
+          if [ -f "$PROFILE_DIR/baseline-prof.txt" ] || [ -f "$PROFILE_DIR/startup-prof.txt" ]; then
             echo "Found baseline profile changes"
-            git add app/src/main/baseline-prof.txt || true
-            git add app/build/baselineProfiles/release/baseline-prof.txt || true
+            # Change to workspace directory to use relative paths for git
+            cd $WORKSPACE
+            git add "app/src/release/generated/baselineProfiles/baseline-prof.txt" || true
+            git add "app/src/release/generated/baselineProfiles/startup-prof.txt" || true
             git commit -m "Update baseline profiles [automated]"
             git push
           else
-            echo "No baseline profile changes found"
-            echo "Checked locations:"
-            echo "- app/src/main/baseline-prof.txt"
-            echo "- app/build/baselineProfiles/release/baseline-prof.txt"
-            ls -la app/src/main || echo "Main directory not found"
-            ls -la app/build/baselineProfiles/release || echo "Release profiles directory not found"
+            echo "No baseline profile changes found in $PROFILE_DIR"
+            echo "Expected files:"
+            echo "- $PROFILE_DIR/baseline-prof.txt"
+            echo "- $PROFILE_DIR/startup-prof.txt"
             exit 1
           fi
