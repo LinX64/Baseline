@@ -46,16 +46,11 @@ jobs:
           -Pandroid.experimental.testOptions.managedDevices.emulator.showKernelLogging=true
           -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect"
 
-      - name: Build all build type and flavor permutations including baseline profiles
-        run: ./gradlew :app:assemble
+      - name: Generate Baseline Profile
+        run: ./gradlew :app:generateReleaseBaselineProfile
           -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=baselineprofile
           -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect"
-          -Pandroid.experimental.testOptions.managedDevices.emulator.showKernelLogging=true
-
-      - name: Generate Baseline Profiles
-        run: ./gradlew :macrobenchmark:pixel6Api34BenchmarkAndroidTest
-          -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=baselineprofile
-          -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect"
+          --stacktrace
 
       - name: Config Git
         run: |
@@ -64,12 +59,19 @@ jobs:
 
       - name: Commit and Push Changes
         run: |
-          if [[ -n "$(git status --porcelain)" ]]; then
-            echo "Changes detected in baseline profiles"
-            git add app/src/release/generated/baselineProfiles/baseline-prof.txt
-            git add app/src/release/generated/baselineProfiles/startup-prof.txt
+          # Check for generated profiles
+          if [ -d "app/src/main/baseline-prof.txt" ] || [ -d "app/build/baselineProfiles" ]; then
+            echo "Found baseline profile changes"
+            git add app/src/main/baseline-prof.txt || true
+            git add app/build/baselineProfiles/release/baseline-prof.txt || true
             git commit -m "Update baseline profiles [automated]"
             git push
           else
-            echo "No changes to baseline profiles"
+            echo "No baseline profile changes found"
+            echo "Checked locations:"
+            echo "- app/src/main/baseline-prof.txt"
+            echo "- app/build/baselineProfiles/release/baseline-prof.txt"
+            ls -la app/src/main || echo "Main directory not found"
+            ls -la app/build/baselineProfiles/release || echo "Release profiles directory not found"
+            exit 1
           fi
