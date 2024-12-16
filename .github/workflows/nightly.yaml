@@ -53,7 +53,7 @@ jobs:
           -Pandroid.experimental.testOptions.managedDevices.emulator.showKernelLogging=true
 
       - name: Generate Baseline Profiles
-        run: ./gradlew :benchmarks:pixel6Api33BenchmarkAndroidTest
+        run: ./gradlew :macrobenchmark:pixel6Api34BenchmarkAndroidTest
           -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=baselineprofile
           -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect"
 
